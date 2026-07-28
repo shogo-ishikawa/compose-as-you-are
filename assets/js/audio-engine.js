@@ -173,7 +173,12 @@ export class AudioEngine {
 
     switch (name) {
       case "pluck":
-        instrument = new Tone.PolySynth(Tone.PluckSynth);
+        // Tone.PluckSynthはPolySynthのvoice要件を満たさないため、
+        // PolySynthで安全に扱えるTone.Synthから短い減衰の撥弦音を作る。
+        instrument = new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.002, decay: 0.16, sustain: 0.025, release: 0.62 },
+        });
         break;
       case "bell":
         instrument = new Tone.PolySynth(Tone.FMSynth, {

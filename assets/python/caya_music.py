@@ -170,14 +170,20 @@ def start_song(
     tempo: int | float = _DEFAULT_TEMPO,
     instrument: str = _DEFAULT_INSTRUMENT,
     title: str = "Untitled",
+    volume: int | float = 0.8,
+    pan: int | float = 0.0,
 ) -> None:
-    """新しい曲を開始し、最初のトラックを作ります。"""
+    """新しい曲を開始し、最初のトラックを作ります。
+
+    volumeとpanは省略できます。作曲スタジオでは最初の旋律トラックの
+    音量と左右位置を設定するために使います。
+    """
     _reset()
     set_tempo(tempo)
     if not isinstance(title, str):
         raise TypeError("title は文字列で指定してください。")
     _song["title"] = title.strip() or "Untitled"
-    new_track(_DEFAULT_TRACK_NAME, instrument=instrument)
+    new_track(_DEFAULT_TRACK_NAME, instrument=instrument, volume=volume, pan=pan)
 
 
 def set_tempo(tempo: int | float) -> None:

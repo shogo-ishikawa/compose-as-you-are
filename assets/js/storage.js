@@ -1,4 +1,4 @@
-const PREFIX = "caya:v0.1.0";
+const PREFIX = "caya:v1.0.0";
 
 function read(key, fallback) {
   try {
@@ -18,6 +18,15 @@ function write(key, value) {
   }
 }
 
+function remove(key) {
+  try {
+    window.localStorage.removeItem(`${PREFIX}:${key}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export const storage = {
   getCurrentLesson() {
     return read("current-lesson", null);
@@ -27,40 +36,56 @@ export const storage = {
     return write("current-lesson", id);
   },
 
-  getCode(lessonId) {
-    return read(`code:${lessonId}`, null);
+  getCurrentActivity(lessonId) {
+    return read(`current-activity:${lessonId}`, "example");
   },
 
-  setCode(lessonId, code) {
-    return write(`code:${lessonId}`, code);
+  setCurrentActivity(lessonId, activityId) {
+    return write(`current-activity:${lessonId}`, activityId);
   },
 
-  removeCode(lessonId) {
-    try {
-      window.localStorage.removeItem(`${PREFIX}:code:${lessonId}`);
-      return true;
-    } catch {
-      return false;
-    }
+  getCode(lessonId, activityId = "example") {
+    return read(`code:${lessonId}:${activityId}`, null);
   },
 
-  getCompletedLessons() {
-    const items = read("completed", []);
+  setCode(lessonId, activityId, code) {
+    return write(`code:${lessonId}:${activityId}`, code);
+  },
+
+  removeCode(lessonId, activityId = "example") {
+    return remove(`code:${lessonId}:${activityId}`);
+  },
+
+  getCompletedActivities() {
+    const items = read("completed-activities", []);
     return new Set(Array.isArray(items) ? items : []);
   },
 
-  setCompletedLessons(set) {
-    return write("completed", [...set]);
+  setCompletedActivities(set) {
+    return write("completed-activities", [...set]);
   },
 
   getSettings() {
-    return read("settings", {
-      volume: 62,
-      loop: false,
-    });
+    return read("settings", { volume: 62, loop: false });
   },
 
   setSettings(settings) {
     return write("settings", settings);
+  },
+
+  getStudioProject() {
+    return read("studio-project", null);
+  },
+
+  setStudioProject(project) {
+    return write("studio-project", project);
+  },
+
+  getStudioCode() {
+    return read("studio-code", null);
+  },
+
+  setStudioCode(code) {
+    return write("studio-code", code);
   },
 };

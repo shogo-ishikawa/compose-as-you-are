@@ -8,3 +8,6 @@ coverage/
 *.log
 .vscode/
 .idea/
+
+# 教員・公開作業用の非公開メモ
+PRIVATE_*.md

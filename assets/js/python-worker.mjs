@@ -56,6 +56,10 @@ _payload = {
 _user_globals = {
     "__name__": "__main__",
     "__builtins__": __builtins__,
+    # Lesson 1で、importを使わずに自作関数を定義するための最小命令。
+    # 通常のレッスンではcaya_musicから明示的にimportする。
+    "begin_song": caya_music.start_song,
+    "record_note": caya_music.add_note,
 }
 
 try:

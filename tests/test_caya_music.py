@@ -32,6 +32,14 @@ class CayaMusicTests(unittest.TestCase):
         self.assertEqual(song["tracks"][0]["events"][0]["notes"], ["C4"])
         self.assertNotIn("cursor", song["tracks"][0])
 
+
+    def test_start_song_accepts_first_track_mix_settings(self) -> None:
+        self.music.start_song(tempo=96, instrument="pluck", title="Mix", volume=0.45, pan=0.25)
+        self.music.add_note("C4", 1)
+        track = self.music.export_song()["tracks"][0]
+        self.assertEqual(track["volume"], 0.45)
+        self.assertEqual(track["pan"], 0.25)
+
     def test_rest_chord_and_current_beat(self) -> None:
         self.music.start_song()
         self.music.add_rest(1)

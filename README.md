@@ -1,132 +1,98 @@
 # Compose As You Are
 
-**Python Music Lab**
+## Python Music Lab
 
-Pythonの基礎文法を読み、書き換え、実行しながら、自分のコードで音楽を作るブラウザ教材です。インストールやアカウント作成を行わず、GitHub Pages上で利用できます。
+Pythonのコードを読み、書き換え、実行しながら、自分の音楽を作るブラウザ教材です。
 
-![Compose As You Areの画面](./docs/images/app-preview.png)
+![Compose As You Are](./assets/images/compose-as-you-are-logo.webp)
 
-## 学べること
+![Pythonコードから音楽が広がるイメージ](./assets/images/compose-as-you-are-hero.webp)
 
-アプリ内の7つのレッスンを通して、次の内容を段階的に扱います。
+## この教材でできること
 
-1. 関数呼び出し、文字列、数値
-2. 変数と代入
-3. リスト、添字、`len`
-4. `for`、`range`、インデント
-5. `if`、`else`、比較、剰余演算子 `%`
-6. `import`、`random.choice`、`random.seed`
-7. `def`、引数、複数トラック
+Compose As You Areには、学び方に応じた3つの入口があります。
 
-Pythonコードを実行すると、曲データが作られます。結果は音として再生できるほか、ピアノロールとイベント表でも確認できます。
+- **7つのレッスン**：Pythonの基礎文法を、例題・練習問題・発展問題で段階的に学びます。
+- **知識ライブラリ**：Python、自動作曲、音楽、DTMの用語や考え方を確認します。
+- **作曲スタジオ**：16ステップのシーケンサーで曲を作り、その内容をPythonコードへ変換します。
 
-## 基本的な使い方
+## 学ぶ内容
 
-1. 左側でレッスンを選び、説明と課題を読みます。
-2. 中央のPythonコードを上から読みます。
-3. 数値、音名、リスト、条件などを1か所ずつ変更します。
-4. **Pythonを実行**を押します。
-5. 右側で再生し、音と可視化を確認します。
-6. 変更前後の違いを言葉で説明します。
+7つのレッスンでは、次の内容を扱います。
 
-コードはブラウザ内へ自動保存されます。`.py`ファイルと曲データのJSONファイルも保存できます。
+1. `def`で自作関数を定義する
+2. `import`と変数を使う
+3. リストと添字で音をまとめる
+4. `for`、`range`、二重ループ、三連符を使う
+5. `if`と`else`で休符やアクセントを作る
+6. `random`と`seed`で再現できる偶然を作る
+7. 関数と複数トラックで作品を編曲する
 
-## すぐにローカルで確認する
+## 基本の進め方
 
-このアプリはWeb Workerを使うため、`index.html`をファイルとして直接開かず、HTTPサーバーから開いてください。
+1. コードを上から読みます。
+2. 課題に合わせて、最初は1か所だけ変更します。
+3. **Pythonを実行**します。
+4. 音を再生し、ピアノロールとイベント表も確認します。
+5. なぜ変化したのかをPythonの言葉で説明します。
+6. 練習問題や発展問題へ進みます。
 
-```bash
-python3 -m http.server 8000
+![レッスン画面の例](./docs/images/app-preview.png)
+
+練習問題と発展問題は、初期コードから1か所以上変更して実行すると学習記録へ反映されます。コード、進捗、作曲スタジオの状態は、同じブラウザの中へ保存されます。
+
+## 作曲スタジオ
+
+作曲スタジオでは、次の要素を操作できます。
+
+- 旋律と低音の音名
+- Kick、Snare、Hi-hat
+- 4ステップごとの和音
+- テンポと1ステップの長さ
+- 三連符
+- 音色、音量、左右位置
+- 乱数seedからのパターン生成
+
+シーケンサーの内容はPythonコードへ変換されます。生成後のコードは自由に編集でき、`.py`ファイルとして保存できます。
+
+## 音名と長さ
+
+```python
+add_note("C4", 1)      # 中央付近のドを1拍
+add_note("F#4", 0.5)   # ファのシャープを半拍
+add_note("Bb3", 1 / 3) # シのフラットを三連符1個分
 ```
 
-ブラウザで次を開きます。
+この教材では、数値の`1`を1拍として扱います。末尾の数字が大きい音名ほど高い音です。
 
-```text
-http://localhost:8000/
-```
+## エラーが起きたとき
 
-Node.jsが利用できる場合は、次のコマンドでも同じサーバーを起動できます。
+Pythonの元のエラーと、日本語の手掛かりを両方表示します。まず次の点を確認してください。
 
-```bash
-npm run serve
-```
+- `for`、`if`、`def`の行末にコロンがあるか
+- 次の行が半角スペース4個で字下げされているか
+- 文字列を半角の引用符で囲んでいるか
+- 変数名のつづりが一致しているか
+- リストの添字が要素数の範囲内か
 
-## テスト
+## Google Colabへの発展
 
-追加パッケージをインストールせずに、構文、リンク、教材コード、作曲APIを検査できます。
+Lesson 7からスターターノートブックを開き、アプリで作ったコードを発展させられます。Colabでは、ピアノロールの描画、NumPyによる簡単な音声合成、数値データの可聴化などを試せます。
 
-```bash
-npm test
-```
+## 利用上の注意
 
-個別に実行する場合は次の通りです。
+- 初回はPython実行環境の読み込みに少し時間がかかります。
+- 音声は再生ボタンを押した後に有効になります。
+- 複数トラックを重ねると音量が上がるため、小さめの音量から始めてください。
+- 保存内容は使用中のブラウザ内にあり、別の端末や別のブラウザへ自動では移りません。
 
-```bash
-npm run check
-npm run test:js
-npm run test:python
-```
+## 関連ガイド
 
-## Google Colabへ進む
-
-Lesson 7の「Google Colabで続きを作る」から、スターターノートブックを直接開けます。アプリで保存したPythonコードは、`colab/caya_starter.ipynb`で発展させられます。ノートブックでは、同じ作曲APIを使って次の活動を行います。
-
-- Pythonコードによる曲の生成
-- ピアノロールの描画
-- NumPyによる簡単な音声合成
-- データから音への変換
-- 独自の作曲関数の設計
-
-[Google Colabでスターターノートブックを開く](https://colab.research.google.com/github/shogo-ishikawa/compose-as-you-are/blob/main/colab/caya_starter.ipynb)
-
-## GitHub Pagesで公開する
-
-リポジトリ名は `compose-as-you-are` を想定しています。
-
-```bash
-git init -b main
-git add .
-git commit -m "Release v0.1.0"
-git remote add origin https://github.com/shogo-ishikawa/compose-as-you-are.git
-git push -u origin main
-```
-
-GitHubのリポジトリ設定で **Pages → Build and deployment → Source** を **GitHub Actions** にすると、`.github/workflows/pages.yml`がサイトを公開します。
-
-公開URLは次の形式です。
-
-```text
-https://shogo-ishikawa.github.io/compose-as-you-are/
-```
-
-## 主なファイル
-
-```text
-.
-├── index.html                     アプリ本体
-├── assets/
-│   ├── css/app.css                画面デザイン
-│   ├── js/app.js                  画面全体の制御
-│   ├── js/python-worker.mjs       ブラウザ内Python実行
-│   ├── js/audio-engine.js         音声再生
-│   ├── js/visualiser.js           ピアノロールと表
-│   ├── js/lessons.js              7つの学習教材
-│   └── python/caya_music.py       教育用作曲API
-├── colab/caya_starter.ipynb       Colab発展教材
-├── examples/                      Python作例
-├── docs/                          学習・授業利用ガイド
-└── tests/                         自動テスト
-```
-
-## 使用技術
-
-- Pyodide v314.0.3：ブラウザ内のPython実行
-- Tone.js v15.1.22：Web Audioによる音声再生
-- CodeMirror v5.65.16：Pythonコードエディタ
-- Canvas API：ピアノロールの描画
-- GitHub Pages：静的サイトの公開
-
-ブラウザへ初めてアクセスした際は、Python実行環境の読み込みに時間がかかることがあります。音声はブラウザの仕様により、利用者が再生ボタンを押した後に有効になります。
+- [学習ガイド](./docs/LEARNING_GUIDE.md)
+- [Python基礎ガイド](./docs/PYTHON_GUIDE.md)
+- [自動作曲ガイド](./docs/AUTOMATIC_COMPOSITION_GUIDE.md)
+- [作曲スタジオガイド](./docs/STUDIO_GUIDE.md)
+- [Google Colabへの進み方](./docs/COLAB_GUIDE.md)
 
 ## ライセンス
 

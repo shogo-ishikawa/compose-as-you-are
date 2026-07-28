@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ステップシーケンサーとPythonコードを往復しながら自由に作曲できるCompose As You Areの作曲スタジオ。">
+  <meta name="theme-color" content="#0c0f1d">
+  <title>作曲スタジオ | Compose As You Are</title>
+  <link rel="icon" href="./assets/images/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="./assets/images/apple-touch-icon.png">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+  <link rel="stylesheet" href="./assets/css/app.css">
+  <link rel="stylesheet" href="./assets/css/studio.css">
+</head>
+<body class="studio-page">
+  <a class="skip-link" href="#main-content">本文へ移動</a>
+  <header class="topbar site-topbar app-topbar">
+    <a class="site-brand" href="./index.html" aria-label="Compose As You Are ホーム">
+      <img src="./assets/images/compose-as-you-are-mark.png" alt="" width="48" height="48">
+      <span><small>Python Music Lab</small><strong>Compose As You Are</strong></span>
+    </a>
+    <button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-nav">メニュー</button>
+    <nav id="site-nav" class="site-nav" data-site-nav aria-label="メインナビゲーション">
+      <a href="./index.html">ホーム</a>
+      <a href="./lessons.html">レッスン</a>
+      <a href="./knowledge.html">知識ライブラリ</a>
+      <a class="is-current" href="./studio.html" aria-current="page">作曲スタジオ</a>
+    </nav>
+    <div class="topbar-status" aria-live="polite">
+      <span id="studio-python-status" class="status-chip status-loading"><span class="status-dot" aria-hidden="true"></span>Pythonを準備中</span>
+      <span id="studio-save-status" class="status-chip status-muted">自動保存</span>
+    </div>
+  </header>
+
+  <main id="main-content" class="studio-main">
+    <section class="studio-intro">
+      <div>
+        <p class="eyebrow">STEP SEQUENCER × PYTHON</p>
+        <h1>音を並べる。コードへ変える。<br>そこから自分の作曲を始める。</h1>
+        <p>セルをクリックしてパターンを作り、Pythonコードへ変換します。生成したコードは自由に書き換えられます。</p>
+      </div>
+      <div class="studio-help-card">
+        <strong>基本操作</strong>
+        <p>旋律・低音セルはクリックで次の音、<kbd>Shift</kbd>＋クリックで前の音、右クリックで無音になります。ドラムはオン・オフを切り替えます。</p>
+      </div>
+    </section>
+
+    <section class="studio-panel project-panel" aria-labelledby="project-title">
+      <div class="studio-panel-heading">
+        <div><p class="eyebrow">PROJECT</p><h2 id="project-title">曲全体の設定</h2></div>
+        <div class="studio-actions">
+          <button id="studio-randomise" class="button button-quiet" type="button">seedから生成</button>
+          <button id="studio-clear" class="button button-quiet" type="button">パターンを消去</button>
+        </div>
+      </div>
+      <div class="project-controls">
+        <label><span>曲名</span><input id="studio-title" type="text" maxlength="60" value="My CAYA Track"></label>
+        <label><span>プリセット</span><select id="studio-preset"></select></label>
+        <label><span>テンポ <strong id="studio-tempo-value">112</strong> BPM</span><input id="studio-tempo" type="range" min="50" max="180" value="112"></label>
+        <label><span>1ステップの長さ</span><select id="studio-step-duration"><option value="0.25">0.25拍</option><option value="0.5" selected>0.5拍</option><option value="1">1拍</option><option value="triplet">1/3拍（三連符）</option></select></label>
+        <label><span>音の候補</span><select id="studio-scale"></select></label>
+        <label><span>乱数seed</span><input id="studio-seed" type="number" min="0" max="999999" value="42"></label>
+      </div>
+    </section>
+
+    <section class="studio-panel sequencer-panel" aria-labelledby="sequencer-title">
+      <div class="studio-panel-heading">
+        <div><p class="eyebrow">16-STEP SEQUENCER</p><h2 id="sequencer-title">ステップシーケンサー</h2></div>
+        <span id="studio-sync-status" class="sync-status is-linked">シーケンサーとコードは同期中</span>
+      </div>
+      <div class="sequencer-scroll" tabindex="0" aria-label="横にスクロールできるステップシーケンサー">
+        <div id="sequencer-grid" class="sequencer-grid"></div>
+      </div>
+      <div class="chord-row-wrap">
+        <strong>和音（4ステップごと）</strong>
+        <div id="studio-chords" class="chord-controls"></div>
+      </div>
+    </section>
+
+    <section class="studio-panel mixer-panel" aria-labelledby="mixer-title">
+      <div class="studio-panel-heading"><div><p class="eyebrow">MIXER</p><h2 id="mixer-title">トラックの音色とバランス</h2></div></div>
+      <div id="studio-mixer" class="mixer-grid"></div>
+    </section>
+
+    <div class="studio-lower-grid">
+      <section class="studio-panel studio-code-panel" aria-labelledby="studio-code-title">
+        <div class="studio-panel-heading">
+          <div><p class="eyebrow">EDITABLE PYTHON</p><h2 id="studio-code-title">生成されたPythonコード</h2></div>
+          <div class="studio-actions">
+            <button id="studio-sync-code" class="button button-quiet" type="button">シーケンサーをコードへ反映</button>
+            <button id="studio-download-code" class="button button-quiet" type="button">.py保存</button>
+          </div>
+        </div>
+        <p class="studio-code-note">コードを直接編集すると自動同期を停止します。編集内容を残したい場合は、再反映の前に保存してください。</p>
+        <div class="editor-shell studio-editor-shell"><textarea id="studio-code-editor" aria-label="作曲スタジオのPythonコード" spellcheck="false"></textarea></div>
+        <div class="run-bar studio-run-bar">
+          <button id="studio-run-code" class="button button-primary button-run" type="button" disabled><span aria-hidden="true">▶</span> Pythonを実行</button>
+          <p id="studio-run-message" class="run-message">Pythonの準備が整うと実行できます。</p>
+        </div>
+        <div class="studio-output-grid">
+          <pre id="studio-console" class="console-output">実行結果がここに表示されます。</pre>
+          <div id="studio-error-help" class="error-help empty-state">エラーが起きたとき、日本語の手掛かりを表示します。</div>
+        </div>
+      </section>
+
+      <section class="studio-panel studio-preview-panel" aria-labelledby="studio-preview-title">
+        <div class="studio-panel-heading">
+          <div><p class="eyebrow">LISTEN AND SEE</p><h2 id="studio-preview-title">再生とピアノロール</h2></div>
+          <span id="studio-audio-status" class="status-chip status-muted">音声は未開始</span>
+        </div>
+        <div class="transport studio-transport">
+          <button id="studio-play" class="transport-button transport-play" type="button" disabled aria-label="再生">▶</button>
+          <button id="studio-pause" class="transport-button" type="button" disabled aria-label="一時停止または再開">Ⅱ</button>
+          <button id="studio-stop" class="transport-button" type="button" disabled aria-label="停止">■</button>
+          <label class="toggle-control"><input id="studio-loop" type="checkbox"><span>ループ</span></label>
+          <label class="volume-control"><span>全体音量</span><input id="studio-master-volume" type="range" min="0" max="100" value="62"></label>
+        </div>
+        <div class="song-summary studio-summary">
+          <div class="summary-card"><span class="summary-label">テンポ</span><strong id="studio-summary-tempo">—</strong></div>
+          <div class="summary-card"><span class="summary-label">長さ</span><strong id="studio-summary-length">—</strong></div>
+          <div class="summary-card"><span class="summary-label">イベント</span><strong id="studio-summary-events">—</strong></div>
+          <div class="summary-card"><span class="summary-label">トラック</span><strong id="studio-summary-tracks">—</strong></div>
+        </div>
+        <div class="canvas-wrap studio-canvas-wrap"><canvas id="studio-piano-roll" aria-label="作曲スタジオで生成された音のピアノロール"></canvas></div>
+        <div class="studio-export-row"><button id="studio-download-song" class="button button-quiet" type="button" disabled>曲データ保存</button></div>
+        <details class="event-details studio-event-details"><summary>生成されたイベントを表で確認する</summary><div class="table-wrap"><table class="event-table"><thead><tr><th>No.</th><th>トラック</th><th>開始</th><th>音</th><th>長さ</th><th>強さ</th></tr></thead><tbody id="studio-event-table"><tr><td colspan="6">Pythonを実行するとイベントが表示されます。</td></tr></tbody></table></div></details>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer rich-footer">
+    <img src="./assets/images/compose-as-you-are-mark.png" alt="" width="54" height="54">
+    <div><strong>Compose As You Are</strong><p>Python Music Lab — シーケンサーからコードへ。</p></div>
+    <span class="footer-version">v1.0.0</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tone@15.1.22/build/Tone.js"></script>
+  <script type="module" src="./assets/js/site.js"></script>
+  <script type="module" src="./assets/js/studio.js"></script>
+</body>
+</html>

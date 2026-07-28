@@ -1,9 +1,9 @@
 {
   "name": "compose-as-you-are",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Pythonの基礎文法を学びながら自動作曲を体験するブラウザ教材",
+  "description": "Pythonの基礎文法と自動作曲を、レッスンと作曲スタジオで学ぶブラウザ教材",
   "scripts": {
     "serve": "python3 -m http.server 8000",
     "check": "node scripts/check.mjs",

@@ -3,237 +3,112 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Pythonの基礎文法を学びながら、自分のコードで音楽を作るブラウザ教材です。">
-  <meta name="theme-color" content="#14172a">
+  <meta name="description" content="Pythonの基礎を学びながら、自分のコードで音楽を作るブラウザ教材 Compose As You Are。">
+  <meta name="theme-color" content="#0c0f1d">
   <title>Compose As You Are | Python Music Lab</title>
-  <link rel="icon" href="./assets/icons/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+  <link rel="icon" href="./assets/images/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="./assets/images/apple-touch-icon.png">
   <link rel="stylesheet" href="./assets/css/app.css">
 </head>
-<body>
-  <a class="skip-link" href="#code-panel">コードエディタへ移動</a>
-
-  <header class="topbar">
-    <div class="brand">
-      <img class="brand-mark" src="./assets/icons/favicon.svg" alt="" width="42" height="42">
-      <div>
-        <p class="brand-kicker">Python Music Lab</p>
-        <h1>Compose As You Are</h1>
-      </div>
-    </div>
-    <div class="topbar-status" aria-live="polite">
-      <span id="python-status" class="status-chip status-loading">
-        <span class="status-dot" aria-hidden="true"></span>
-        Pythonを準備中
-      </span>
-      <span id="save-status" class="status-chip status-muted">自動保存</span>
-      <button id="open-help" class="icon-button" type="button" aria-label="使い方を開く" title="使い方">?</button>
-    </div>
+<body class="landing-page">
+  <a class="skip-link" href="#main-content">本文へ移動</a>
+  <header class="topbar site-topbar">
+    <a class="site-brand" href="./index.html" aria-label="Compose As You Are ホーム">
+      <img src="./assets/images/compose-as-you-are-mark.png" alt="" width="48" height="48">
+      <span><small>Python Music Lab</small><strong>Compose As You Are</strong></span>
+    </a>
+    <button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-nav">メニュー</button>
+    <nav id="site-nav" class="site-nav" data-site-nav aria-label="メインナビゲーション">
+      <a class="is-current" href="./index.html" aria-current="page">ホーム</a>
+      <a href="./lessons.html">レッスン</a>
+      <a href="./knowledge.html">知識ライブラリ</a>
+      <a href="./studio.html">作曲スタジオ</a>
+    </nav>
   </header>
 
-  <main class="app-shell">
-    <aside class="panel lesson-panel" aria-label="学習ガイド">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">GUIDED LESSONS</p>
-          <h2>学習ガイド</h2>
-        </div>
-        <span id="progress-label" class="progress-label">0 / 7</span>
-      </div>
-      <div class="progress-track" aria-hidden="true">
-        <div id="progress-bar" class="progress-bar"></div>
-      </div>
-
-      <nav id="lesson-nav" class="lesson-nav" aria-label="レッスン一覧"></nav>
-
-      <article id="lesson-content" class="lesson-content" aria-live="polite"></article>
-    </aside>
-
-    <section id="code-panel" class="panel code-panel" aria-label="Pythonコード">
-      <div class="panel-heading code-heading">
-        <div>
-          <p class="eyebrow">REAL PYTHON IN YOUR BROWSER</p>
-          <h2 id="editor-title">Pythonコード</h2>
-        </div>
-        <div class="toolbar compact-toolbar">
-          <button id="copy-code" class="button button-quiet" type="button">コピー</button>
-          <button id="download-code" class="button button-quiet" type="button">.py保存</button>
-          <button id="reset-code" class="button button-quiet" type="button">初期コード</button>
+  <main id="main-content">
+    <section class="home-hero" aria-labelledby="hero-title">
+      <img class="home-hero-image" src="./assets/images/compose-as-you-are-hero.webp" alt="Pythonコードとピアノロールから色彩豊かな音楽が広がるCompose As You Areのイメージ">
+      <div class="home-hero-shade"></div>
+      <div class="home-hero-content">
+        <h1 id="hero-title" class="visually-hidden">Compose As You Are — Python Music Lab</h1>
+        <p class="home-hero-lead">コードを読み、変え、実行する。<br>その結果を音として聴き、図として見る。</p>
+        <div class="hero-actions">
+          <a class="button button-primary button-large" href="./lessons.html">7つのレッスンを始める</a>
+          <a class="button button-glass button-large" href="./studio.html">自由に作曲する</a>
         </div>
       </div>
-
-      <div class="editor-note">
-        <span class="editor-note-icon" aria-hidden="true">⌘</span>
-        <span><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd> でも実行できます。</span>
-      </div>
-
-      <div class="editor-shell">
-        <textarea id="code-editor" aria-label="Pythonコードエディタ" spellcheck="false"></textarea>
-      </div>
-
-      <div class="run-bar">
-        <button id="run-code" class="button button-primary button-run" type="button" disabled>
-          <span aria-hidden="true">▶</span>
-          Pythonを実行
-        </button>
-        <p id="run-message" class="run-message">Pythonの準備が整うと実行できます。</p>
-      </div>
-
-      <section class="output-section" aria-label="実行結果">
-        <div class="output-tabs" role="tablist" aria-label="出力の種類">
-          <button id="tab-console" class="output-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="console-panel">実行ログ</button>
-          <button id="tab-help" class="output-tab" type="button" role="tab" aria-selected="false" aria-controls="error-panel">エラーのヒント</button>
-        </div>
-        <div id="console-panel" class="output-panel" role="tabpanel" aria-labelledby="tab-console">
-          <pre id="console-output" class="console-output">Pythonの実行結果がここに表示されます。</pre>
-        </div>
-        <div id="error-panel" class="output-panel" role="tabpanel" aria-labelledby="tab-help" hidden>
-          <div id="error-help" class="error-help empty-state">
-            エラーが起きたとき、原因を考えるためのヒントを表示します。
-          </div>
-        </div>
-      </section>
     </section>
 
-    <section class="panel music-panel" aria-label="音楽と可視化">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">LISTEN · SEE · CHANGE</p>
-          <h2>音と可視化</h2>
-        </div>
-        <span id="audio-status" class="status-chip status-muted">音声は未開始</span>
+    <section class="content-section route-section" aria-labelledby="route-title">
+      <div class="section-intro">
+        <p class="eyebrow">THREE ROUTES</p>
+        <h2 id="route-title">学び方に合わせた3つの入口</h2>
+        <p>初めてPythonに触れる人はレッスンから、仕組みを整理したい人は知識ライブラリから、作品を作りたい人は作曲スタジオから始められます。</p>
       </div>
-
-      <div class="transport" aria-label="再生操作">
-        <button id="play-song" class="transport-button transport-play" type="button" disabled aria-label="再生" title="再生">▶</button>
-        <button id="pause-song" class="transport-button" type="button" disabled aria-label="一時停止または再開" title="一時停止 / 再開">Ⅱ</button>
-        <button id="stop-song" class="transport-button" type="button" disabled aria-label="停止" title="停止">■</button>
-        <label class="toggle-control">
-          <input id="loop-song" type="checkbox">
-          <span>ループ</span>
-        </label>
-        <label class="volume-control">
-          <span>音量</span>
-          <input id="master-volume" type="range" min="0" max="100" value="62" aria-label="音量">
-        </label>
+      <div class="route-grid">
+        <a class="route-card" href="./lessons.html">
+          <span class="route-number">01</span>
+          <h3>レッスン</h3>
+          <p>変数、リスト、繰り返し、条件分岐、乱数、関数を、音の変化と結び付けて学びます。</p>
+          <span class="route-link">例題・練習・発展へ →</span>
+        </a>
+        <a class="route-card" href="./knowledge.html">
+          <span class="route-number">02</span>
+          <h3>知識ライブラリ</h3>
+          <p>Pythonの用語、自動作曲の考え方、音程・拍・和音・DTMの基礎をいつでも確認できます。</p>
+          <span class="route-link">知識を調べる →</span>
+        </a>
+        <a class="route-card" href="./studio.html">
+          <span class="route-number">03</span>
+          <h3>作曲スタジオ</h3>
+          <p>ステップシーケンサーで音を並べ、その内容をPythonコードへ変換して自由に編集できます。</p>
+          <span class="route-link">スタジオを開く →</span>
+        </a>
       </div>
+    </section>
 
-      <section class="parameter-lab" aria-labelledby="parameter-title">
-        <div class="section-heading-row">
-          <div>
-            <p class="eyebrow">CODE-LINKED CONTROLS</p>
-            <h3 id="parameter-title">コードとつながる操作</h3>
-          </div>
-          <span id="parameter-message" class="parameter-message">操作するとPythonコードが変わります。</span>
-        </div>
-        <div class="parameter-grid">
-          <label class="field-control">
-            <span>テンポ <strong id="tempo-value">96</strong> BPM</span>
-            <input id="tempo-control" type="range" min="50" max="180" step="1" value="96">
-          </label>
-          <label class="field-control">
-            <span>音色</span>
-            <select id="instrument-control">
-              <option value="soft_synth">Soft Synth</option>
-              <option value="pluck">Pluck</option>
-              <option value="bell">Bell</option>
-              <option value="warm_pad">Warm Pad</option>
-              <option value="bass">Bass</option>
-            </select>
-          </label>
-        </div>
-      </section>
-
-      <div class="song-summary" aria-live="polite">
-        <div class="summary-card">
-          <span class="summary-label">テンポ</span>
-          <strong id="summary-tempo">—</strong>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">長さ</span>
-          <strong id="summary-length">—</strong>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">音イベント</span>
-          <strong id="summary-events">—</strong>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">トラック</span>
-          <strong id="summary-tracks">—</strong>
-        </div>
+    <section class="content-section cycle-section" aria-labelledby="cycle-title">
+      <div class="section-intro compact-intro">
+        <p class="eyebrow">LEARNING CYCLE</p>
+        <h2 id="cycle-title">「分かった」を、耳と目で確かめる</h2>
       </div>
+      <ol class="learning-cycle">
+        <li><span>1</span><strong>読む</strong><p>短いPythonコードを上から読み、変数や処理の役割を確認します。</p></li>
+        <li><span>2</span><strong>変える</strong><p>音名、テンポ、回数、条件などを一か所ずつ変更します。</p></li>
+        <li><span>3</span><strong>実行する</strong><p>ブラウザの中でPythonを実行し、曲を表すデータを作ります。</p></li>
+        <li><span>4</span><strong>聴く・見る</strong><p>音、ピアノロール、イベント表を比べて、コードの働きを確かめます。</p></li>
+        <li><span>5</span><strong>説明する</strong><p>なぜ変化したのかをPythonの言葉で説明し、次の工夫へ進みます。</p></li>
+      </ol>
+    </section>
 
-      <section class="visual-section" aria-labelledby="piano-roll-title">
-        <div class="section-heading-row">
-          <div>
-            <p class="eyebrow">PIANO ROLL</p>
-            <h3 id="piano-roll-title">音の並びを見る</h3>
-          </div>
-          <button id="download-song" class="button button-quiet" type="button" disabled>曲データ保存</button>
-        </div>
-        <div class="canvas-wrap">
-          <canvas id="piano-roll" aria-label="生成された音符を時刻と高さで示すピアノロール"></canvas>
-        </div>
-      </section>
-
-      <details class="event-details">
-        <summary>生成されたイベントを表で確認する</summary>
-        <div class="table-wrap">
-          <table class="event-table">
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>トラック</th>
-                <th>開始</th>
-                <th>音</th>
-                <th>長さ</th>
-                <th>強さ</th>
-              </tr>
-            </thead>
-            <tbody id="event-table-body">
-              <tr><td colspan="6">Pythonを実行すると、ここにイベントが表示されます。</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </details>
-
-      <section id="challenge-card" class="challenge-card" aria-live="polite"></section>
+    <section class="content-section feature-section" aria-labelledby="feature-title">
+      <div class="feature-copy">
+        <p class="eyebrow">FROM FIRST NOTE TO ORIGINAL WORK</p>
+        <h2 id="feature-title">1音から、アルゴリズムによる作品へ</h2>
+        <p>最初は自分で定義した小さな関数から始めます。やがて、繰り返し、条件、乱数、複数トラックを組み合わせ、ルールを持った自動作曲へ発展します。</p>
+        <ul class="check-list">
+          <li>音楽経験がなくても音名と拍から始められる</li>
+          <li>エラーは元のPython表示と日本語の手掛かりを併記</li>
+          <li>コードとGUIの変更がつながって見える</li>
+          <li>作ったコードを保存し、Google Colabで発展できる</li>
+        </ul>
+      </div>
+      <div class="feature-visual" aria-label="Pythonから音楽が作られる流れ">
+        <div class="flow-card"><code>for i in range(8):</code><span>Python</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-card"><strong>音符イベント</strong><span>曲データ</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-card"><strong>♪</strong><span>音と図</span></div>
+      </div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <p>Compose As You Are — Python Music Lab <span class="footer-version">v0.1.0</span></p>
-    <p>ブラウザの中でPythonを実行し、生成したデータを音として再生します。</p>
+  <footer class="site-footer rich-footer">
+    <img src="./assets/images/compose-as-you-are-mark.png" alt="" width="54" height="54">
+    <div><strong>Compose As You Are</strong><p>Python Music Lab — コードから音楽へ。</p></div>
+    <span class="footer-version">v1.0.0</span>
   </footer>
-
-  <dialog id="help-dialog" class="help-dialog">
-    <form method="dialog">
-      <button class="dialog-close" aria-label="閉じる">×</button>
-      <p class="eyebrow">HOW TO USE</p>
-      <h2>基本の進め方</h2>
-      <ol class="help-steps">
-        <li><strong>左</strong>でレッスンを選び、説明と課題を読みます。</li>
-        <li><strong>中央</strong>のPythonコードを読み、値や処理を書き換えます。</li>
-        <li><strong>Pythonを実行</strong>して、曲データを作ります。</li>
-        <li><strong>右</strong>で音を再生し、ピアノロールと表で結果を確かめます。</li>
-      </ol>
-      <div class="dialog-note">
-        初回はPython実行環境の読み込みに少し時間がかかります。音はブラウザの制約により、再生ボタンを押した後に有効になります。
-      </div>
-      <button class="button button-primary" value="close">はじめる</button>
-    </form>
-  </dialog>
-
-  <noscript>
-    <div class="noscript-message">このアプリを使うにはJavaScriptを有効にしてください。</div>
-  </noscript>
-
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/matchbrackets.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/closebrackets.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tone@15.1.22/build/Tone.js"></script>
-  <script type="module" src="./assets/js/app.js"></script>
+  <script type="module" src="./assets/js/site.js"></script>
 </body>
 </html>
