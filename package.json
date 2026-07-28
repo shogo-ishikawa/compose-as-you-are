@@ -1,0 +1,19 @@
+{
+  "name": "compose-as-you-are",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pythonの基礎文法を学びながら自動作曲を体験するブラウザ教材",
+  "scripts": {
+    "serve": "python3 -m http.server 8000",
+    "check": "node scripts/check.mjs",
+    "test:js": "node --test tests/*.test.mjs",
+    "test:python": "python3 -m unittest discover -s tests -p 'test_*.py'",
+    "test": "npm run check && npm run test:js && npm run test:python"
+  },
+  "engines": {
+    "node": ">=20",
+    "python": ">=3.10"
+  },
+  "license": "MIT"
+}
