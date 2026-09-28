@@ -57,10 +57,19 @@ try {
     assert.match(await page.locator('#feedback').innerText(), /行目/);
   });
   await mark('Hints and answer viewing do not mark completion', async () => {
-    await page.locator('#next-hint').click();
-    await page.locator('#solution-panel > summary').click();
+    while (await page.locator('#next-hint').isEnabled()) await page.locator('#next-hint').click();
+    await page.locator('#show-solution').click();
     assert.notEqual(await page.locator('#current-status').innerText(), '条件を確認済み');
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('caya:spica-aligned-1:variables.practice')).solutionViewed);
+  });
+  await mark('Layout toggle preserves code and the open solution', async () => {
+    const before = await getCode();
+    await page.locator('#toggle-music-layout').click();
+    assert.equal(await getCode(), before);
+    assert.equal(await page.locator('#solution-panel').getAttribute('open'), '');
+    await page.screenshot({ path: 'browser-results/layout-below.png', fullPage: true });
+    await page.locator('#toggle-music-layout').click();
+    await page.screenshot({ path: 'browser-results/layout-right.png', fullPage: true });
   });
   for (const lesson of course.lessons) {
     for (const activity of ['example', 'practice', 'advanced']) {
@@ -110,6 +119,25 @@ try {
     assert.match(await page.locator('#feedback').innerText(), /TimeoutError/);
     await writeCode(course.lessons[2].activities.practice.solution);
     await runAndExpect('条件を確認済み');
+  });
+  await mark('Tempo control edits code without running it and Undo restores it', async () => {
+    await writeCode('tempo = 96\nstart_song(tempo=tempo, instrument="bell")\n');
+    const before = await getCode();
+    await page.locator('#tempo-control').fill('123');
+    await page.locator('#tempo-control').dispatchEvent('change');
+    assert.match(await getCode(), /tempo = 123/);
+    await page.locator('.CodeMirror textarea').press(process.platform === 'darwin' ? 'Meta+z' : 'Control+z');
+    assert.equal(await getCode(), before);
+    assert.equal(await page.locator('#current-status').innerText(), '編集後・未確認');
+  });
+  await mark('History return prepares Python and preserves code', async () => {
+    const before = await getCode();
+    await page.goto(`${base}/index.html`);
+    await page.goBack();
+    await waitReady();
+    assert.equal(await getCode(), before);
+    // Chromium may decline bfcache (for example under automation); report rather than infer it.
+    report.bfcachePersisted = await page.evaluate(() => document.querySelector('#page-notice').textContent.includes('履歴から復帰'));
   });
   await mark('Desktop and mobile have no document-wide horizontal overflow', async () => {
     await page.locator('#task-title').scrollIntoViewIfNeeded();

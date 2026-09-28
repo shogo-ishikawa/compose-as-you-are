@@ -113,7 +113,7 @@ const python = new PythonRunner({
         state.autoRan = true;
         runCode({ quiet: true });
       }
-    } else if (status === "loading") {
+    } else if (["loading", "preparing", "recovering", "running", "closed"].includes(status)) {
       state.pythonReady = false;
       elements.runButton.disabled = true;
       setPythonStatus(message || "Pythonを準備中", "loading");
@@ -646,11 +646,12 @@ elements.tempoInput.addEventListener("change", () => changeCodeSetting("tempo", 
 elements.instrumentInput.addEventListener("change", () => changeCodeSetting("instrument", elements.instrumentInput.value));
 elements.openHelp.addEventListener("click", () => elements.helpDialog.showModal());
 
-window.addEventListener("beforeunload", () => {
+window.addEventListener("pagehide", () => {
   saveCurrentCode();
   saveSettings();
   python.destroy();
 });
+window.addEventListener("pageshow", () => { if (!python.ready) python.ensureReady().catch(() => {}); });
 
 function initialisePage() {
   const savedCode = storage.getCode(state.lessonId, state.activityId);
