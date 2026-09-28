@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "courseId": "spica-aligned-1",
   "spicaBaseUrl": "https://shogo-ishikawa.github.io/lavi-spica/",
   "introduction": "notebookとLAVi-SPICAで学んだPythonを、音の並びとして確かめる教材です。授業では例題を紹介し、興味のあるレッスンで練習・発展へ進めます。全レッスンを授業内で終える必要はありません。",

@@ -29,7 +29,11 @@
 .activity-tabs { display: flex; gap: 10px; margin: 20px 0; }
 .activity-tab { color: #edf2ff; background: #20283d; border: 1px solid #52627e; padding: 12px 24px; border-radius: 9px; }
 .activity-tab.selected { color: #101d36; background: #b7ceff; border-color: #b7ceff; font-weight: 750; }
-.writing-layout { display: grid; grid-template-columns: minmax(310px, .85fr) minmax(460px, 1.45fr); gap: 24px; align-items: start; }
+.layout-toolbar { display: flex; justify-content: flex-end; margin: -4px 0 12px; }
+.writing-layout { display: grid; grid-template-columns: minmax(270px, .8fr) minmax(420px, 1.25fr) minmax(320px, .9fr); gap: 18px; align-items: start; }
+.writing-layout[data-layout="below"] { grid-template-columns: minmax(300px, .8fr) minmax(480px, 1.4fr); }
+.writing-layout[data-layout="below"] .music-result { grid-column: 1 / -1; }
+.task-panel, .writing-panel, .music-result { max-height: calc(100vh - 24px); overflow: auto; }
 .task-objective { font-weight: 600; color: #e1eaff; }
 .instruction-list { padding-left: 1.45em; margin: 8px 0 20px; }
 .instruction-list li { padding-left: 6px; margin-bottom: 15px; }
@@ -40,6 +44,9 @@
 .hint-item { margin: 12px 0; padding: 14px 18px; border: 1px solid #526484; border-radius: 8px; background: #232c44; }
 .hint-item p { margin-bottom: 0; }
 .solution-panel, .reflection-panel, .console-details { margin-top: 20px; border-top: 1px solid #46516a; padding-top: 10px; }
+.solution-invitation { margin-top: 16px; padding: 14px; border: 1px solid #7c91b7; border-radius: 10px; background: #222f47; }
+.solution-invitation p { margin-top: 0; }
+.diagnostics pre { max-height: 180px; }
 .practice-page pre { max-width: 100%; overflow: auto; white-space: pre; font-size: .9rem; line-height: 1.65; background: #101728; color: #e2ecff; padding: 16px; border-radius: 8px; }
 .practice-page code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
 #reflection { width: 100%; display: block; box-sizing: border-box; background: #111b2e; color: #eff4ff; padding: 12px; border: 1px solid #7384a1; border-radius: 8px; margin-top: 12px; resize: vertical; }
@@ -66,5 +73,9 @@
 .practice-volume input { max-width: 150px; }
 .record-actions input[type="file"] { max-width: 200px; font-size: .8rem; }
 .practice-page .transport { flex-wrap: wrap; gap: 14px; }
-@media (max-width: 1100px) { .course-route { grid-template-columns: repeat(2, minmax(0, 1fr)); } .writing-layout { grid-template-columns: minmax(0, 1fr); } }
+.music-settings { display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, .65fr); gap: 12px; }
+.music-settings label { display: grid; gap: 6px; }
+.music-settings select { max-width: 100%; font: inherit; padding: 7px; }
+@media (max-width: 1250px) { .writing-layout, .writing-layout[data-layout="right"] { grid-template-columns: minmax(300px, .8fr) minmax(460px, 1.3fr); } .writing-layout[data-layout="right"] .music-result { grid-column: 1 / -1; } }
+@media (max-width: 850px) { .course-route { grid-template-columns: repeat(2, minmax(0, 1fr)); } .writing-layout, .writing-layout[data-layout] { grid-template-columns: minmax(0, 1fr); } .writing-layout .music-result { grid-column: auto; } .task-panel, .writing-panel, .music-result { max-height: none; overflow: visible; } }
 @media (max-width: 600px) { .practice-shell { padding: 22px 12px 44px; } .course-route { grid-template-columns: minmax(0, 1fr); } .activity-tab { flex: 1; padding: 10px 6px; } .writing-layout { gap: 0; } .practice-editor .CodeMirror { height: 360px; font-size: 14px; } .practice-page .button { white-space: normal; } }

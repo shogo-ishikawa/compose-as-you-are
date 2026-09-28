@@ -42,3 +42,15 @@ test("a one-line keyword argument can be replaced", () => {
 test("null is returned when no corresponding setting exists", () => {
   assert.equal(replaceSetting('print("hello")', "tempo", 100), null);
 });
+
+test("calculations, comments, and local variables are not guessed", () => {
+  const code = "# tempo = 90\ndef choose():\n    tempo = base * 2\n    return tempo\nstart_song(tempo=tempo)";
+  assert.equal(replaceSetting(code, "tempo", 100), null);
+});
+
+test("literal positional start_song arguments can be changed", () => {
+  const tempo = replaceSetting('start_song(96, "bell")', "tempo", 108);
+  assert.equal(tempo.code, 'start_song(108, "bell")');
+  const instrument = replaceSetting(tempo.code, "instrument", "pluck");
+  assert.equal(instrument.code, 'start_song(108, "pluck")');
+});

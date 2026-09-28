@@ -21,7 +21,8 @@
   </header>
   <main class="practice-shell">
     <div class="course-header"><p class="eyebrow">READ · WRITE · RUN · EXPLAIN</p><h1>学んだPythonを、音にする。</h1><p id="course-introduction">SPICAの学習経路に対応した音楽の応用教材です。</p>
-      <div class="status-row"><span id="python-status" role="status">Pythonを準備中</span><span id="save-status" role="status">ブラウザに自動保存</span></div>
+      <div class="status-row"><span id="python-status" role="status">Pythonを準備中</span><span id="save-status" role="status">ブラウザに自動保存</span><button id="recover-python" class="button button-quiet" type="button" hidden>Pythonを再準備</button></div>
+      <details id="python-diagnostics" class="diagnostics" hidden><summary>実行環境の診断情報</summary><pre id="python-diagnostic-detail"></pre></details>
     </div>
     <p id="loading-message" role="status">教材を読み込んでいます。</p>
     <p id="page-notice" role="status"></p>
@@ -32,14 +33,16 @@
         <details class="spica-review"><summary>LAVi-SPICAで文法を見直す</summary><div id="spica-links" class="review-links"></div><p>別のタブで開きます。音楽教材のコードはこの画面に残ります。</p></details>
       </section>
       <div id="activity-tabs" class="activity-tabs" role="group" aria-label="課題の種類"></div>
-      <div class="writing-layout">
+      <div class="layout-toolbar"><button id="toggle-music-layout" class="button button-quiet" type="button" aria-pressed="false">音楽パネルを下へ</button></div>
+      <div id="workspace-layout" class="writing-layout" data-layout="right">
         <section class="task-panel" aria-labelledby="task-title">
           <p class="eyebrow">YOUR TASK</p><h2 id="task-title"></h2><p id="task-objective" class="task-objective"></p>
           <h3>ここから取り組む</h3><ol id="task-instructions" class="instruction-list"></ol>
           <div class="expected-box"><h3>できあがりの条件</h3><ul id="expected-results"></ul></div>
           <p class="placeholder-note"><code>...</code> は未完成の目印です。そこへ式や処理を書きます。コメントの <code># TODO</code> は残して構いません。</p>
           <div id="hints" class="hint-list"></div><button id="next-hint" type="button" class="button button-quiet" data-edit-action>ヒントを開く</button>
-          <details id="solution-panel" class="solution-panel"><summary>解答例と考え方を確認する</summary><p>これは一例です。開いただけでは条件確認済みになりません。自分のコードと比較してください。</p><pre><code id="solution-code"></code></pre><p id="solution-explanation"></p></details>
+          <div id="solution-invitation" class="solution-invitation" hidden><p>ここまでのヒントでも難しい場合は、解答例を確認できます。</p><button id="show-solution" class="button button-primary" type="button">解答例のコードを見る</button></div>
+          <details id="solution-panel" class="solution-panel" hidden><summary>解答の一例と考え方</summary><p>これは解答の一例です。開いたりコピーしたりしても、入力中のコードや達成状態は変わりません。</p><pre><code id="solution-code" class="language-python"></code></pre><button id="copy-solution" class="button button-quiet" type="button">解答例をコピー</button><p id="solution-copy-status" role="status"></p><p id="solution-explanation"></p></details>
           <p id="reference-history" class="small-note"></p>
           <details class="reflection-panel"><summary>仕組みを自分の言葉で説明する</summary><label id="reflection-question" for="reflection"></label><textarea id="reflection" rows="4" maxlength="6000" data-edit-action placeholder="何を自分で書き、どう確かめたかを記録します。"></textarea><p>説明文は自動採点しません。学習記録に保存します。</p></details>
         </section>
@@ -53,18 +56,19 @@
           <details class="console-details"><summary>printの出力・Pythonのエラーを詳しく見る</summary><pre id="console-output"></pre></details>
           <p class="small-note">これは学習用の確認です。条件を満たすことと、自力で理解して説明できることは別です。解答例の参照も記録します。</p>
         </section>
-      </div>
       <section class="music-result" aria-labelledby="music-title"><div class="section-heading-row"><h2 id="music-title">音とデータで確かめる</h2><span id="audio-status" role="status">未実行</span></div>
         <p id="song-summary">コードを実行すると曲データが作られます。</p>
-        <div class="transport"><button id="play-song" type="button" class="button button-primary" disabled>再生</button><button id="pause-song" type="button" class="button button-quiet" disabled>一時停止／再開</button><button id="stop-song" type="button" class="button button-quiet" disabled>停止</button><label><input id="loop-song" type="checkbox"> ループ</label><label class="practice-volume">音量 <input id="master-volume" type="range" min="0" max="100" value="45"></label><button id="download-song" type="button" class="button button-quiet" disabled>曲データ保存</button></div>
+        <div class="music-settings"><label>テンポ <output id="tempo-value">120</output> BPM<input id="tempo-control" type="range" min="40" max="240" value="120"></label><label>音色<select id="instrument-control"><option value="soft_synth">Soft synth</option><option value="bell">Bell</option><option value="pluck">Pluck</option><option value="bass">Bass</option></select></label></div><p id="parameter-message" class="small-note" role="status">変更はコードへ反映されます。再実行して確認してください。</p>
+        <div class="transport"><button id="play-song" type="button" class="button button-primary" disabled>再生</button><button id="pause-song" type="button" class="button button-quiet" disabled>一時停止／再開</button><button id="stop-song" type="button" class="button button-quiet" disabled>停止</button><label><input id="loop-song" type="checkbox"> ループ</label><label class="practice-volume">再生音量 <input id="master-volume" type="range" min="0" max="100" value="45"></label><button id="download-song" type="button" class="button button-quiet" disabled>曲データ保存</button></div>
         <p class="small-note">最初は小さめの音量で再生してください。音を出せない環境でも、下の図と表で答えを確認できます。</p>
         <div class="canvas-wrap"><canvas id="piano-roll" aria-label="音の高さと開始時刻のピアノロール"></canvas></div>
         <details class="event-details"><summary>音の順序・開始時刻・長さを表で確認する</summary><div class="table-wrap"><table class="event-table"><thead><tr><th>No.</th><th>トラック</th><th>開始</th><th>音</th><th>長さ</th><th>強さ</th></tr></thead><tbody id="event-table-body"></tbody></table></div></details>
       </section>
+      </div>
       <section class="record-panel"><h2>記録を持ち帰る・続きを作る</h2><p>自動保存はこのブラウザ内です。端末を変える前や、大切なコードを書いた後は、学習記録をファイルへ保存してください。</p><div class="record-actions"><button id="export-records" type="button" class="button button-quiet">学習記録を保存</button><label class="button button-quiet">学習記録を読み込む <input id="import-records" type="file" accept=".json,application/json" data-edit-action></label><a id="colab-link" class="button button-primary" href="https://colab.research.google.com/github/shogo-ishikawa/compose-as-you-are/blob/main/colab/caya_starter.ipynb" target="_blank" rel="noopener noreferrer" hidden>Colabで続きを作る ↗</a></div><p class="small-note">旧レッスンのコード・記録はそのまま残しています。<a href="./legacy-lessons.html">旧レッスンと保存コードを開く</a></p></section>
     </div>
   </main>
-  <footer class="site-footer"><p>Compose As You Are — Python Music Lab · v1.1.0</p><p>例題で読み、練習で書き、実行結果を確かめる。</p></footer>
+  <footer class="site-footer"><p>Compose As You Are — Python Music Lab · v1.2.0</p><p>例題で読み、練習で書き、実行結果を確かめる。</p></footer>
   <noscript><p>この教材にはJavaScriptが必要です。</p></noscript>
   <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>

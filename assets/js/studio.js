@@ -101,7 +101,7 @@ const python = new PythonRunner({
       elements.runCode.disabled = false;
       setPythonStatus("Pythonを実行できます", "ready");
       setRunMessage("シーケンサーをコードへ反映し、Pythonを実行してください。", "");
-    } else if (status === "loading") {
+    } else if (["loading", "preparing", "recovering", "running", "closed"].includes(status)) {
       state.pythonReady = false;
       elements.runCode.disabled = true;
       setPythonStatus(message || "Pythonを準備中", "loading");
@@ -672,11 +672,12 @@ function initialise() {
   }
 }
 
-window.addEventListener("beforeunload", () => {
+window.addEventListener("pagehide", () => {
   storage.setStudioProject(project);
   storage.setStudioCode(editor.getValue());
   saveSettings();
   python.destroy();
 });
+window.addEventListener("pageshow", () => { if (!python.ready) python.ensureReady().catch(() => {}); });
 
 initialise();

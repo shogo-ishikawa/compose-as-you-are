@@ -5,6 +5,7 @@ import { PianoRollVisualiser, renderEventTable } from "./visualiser.js";
 import { countEvents, formatBeat, songLength } from "./note-utils.js";
 import { storage as legacyStorage } from "./storage.js";
 import { PracticeStore, recordStatus } from "./practice-store.js";
+import { replaceSetting } from "./code-settings.js";
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;")
@@ -32,7 +33,8 @@ async function initialise() {
   const warn = message => { saveFailed = true; $("storage-warning").hidden = false; $("storage-warning").textContent = message; };
   const store = new PracticeStore(taskIds, { onWarning: warn });
   const settings = legacyStorage.getSettings();
-  const state = { taskId: store.current(taskIds[0]), busy: false, ready: false, song: null, saveTimer: null, record: null };
+  const state = { taskId: store.current(taskIds[0]), busy: false, environment: "preparing", song: null, saveTimer: null, record: null,
+    leaving: false, openSolutions: new Set() };
   const lessonFor = id => lessons.find(lesson => lesson.id === id.split(".")[0]) || lessons[0];
   const activityFor = id => lessonFor(id).activities[id.split(".")[1]];
   const currentLesson = () => lessonFor(state.taskId);
@@ -113,8 +115,11 @@ async function initialise() {
     $("next-hint").hidden = hints.length === 0;
     $("next-hint").disabled = state.busy || record.hintsUsed >= hints.length;
     $("next-hint").textContent = record.hintsUsed >= hints.length ? "すべてのヒントを表示しました" : `ヒント ${record.hintsUsed + 1} を開く`;
-    $("solution-panel").hidden = !activity.solution;
-    $("solution-panel").open = false;
+    const allHintsSeen = hints.length === 0 || record.hintsUsed >= hints.length;
+    const canShowSolution = mode() !== "example" && Boolean(activity.solution) && allHintsSeen;
+    $("solution-invitation").hidden = !canShowSolution || state.openSolutions.has(state.taskId);
+    $("solution-panel").hidden = !activity.solution || (mode() !== "example" && !state.openSolutions.has(state.taskId));
+    $("solution-panel").open = state.openSolutions.has(state.taskId);
     $("solution-code").textContent = activity.solution || "";
     $("solution-explanation").textContent = activity.explanation || "";
     $("reflection-question").textContent = activity.reflection;
@@ -176,28 +181,37 @@ async function initialise() {
     editor.textarea.readOnly = busy;
     editor.cm?.setOption("readOnly", busy ? "nocursor" : false);
     document.querySelectorAll("[data-edit-action]").forEach(element => { element.disabled = busy; });
-    $("run-code").disabled = busy || !state.ready;
+    $("run-code").disabled = busy || state.environment !== "ready";
     $("run-code").textContent = busy ? "実行・確認中…" : "Pythonを実行・答え合わせ";
     if (!busy) {
       $("next-hint").disabled = state.record.hintsUsed >= (currentActivity().hints || []).length;
       $("restore-code").disabled = !state.record.backup || typeof state.record.backup.code !== "string";
     }
   }
-  const python = new PythonRunner({ timeoutMs: 9000, onStatus: ({ status, message }) => {
-    state.ready = status === "ready";
-    $("python-status").textContent = state.ready ? "Pythonを実行できます" : message || "Pythonを準備中";
-    $("run-code").disabled = !state.ready || state.busy;
+  const python = new PythonRunner({ timeoutMs: 9000, onStatus: ({ status, message, detail, generation }) => {
+    state.environment = status;
+    const failed = status === "error";
+    $("python-status").textContent = status === "ready" ? "Pythonを実行できます" : message || "Pythonを準備中";
+    $("recover-python").hidden = !failed;
+    $("python-diagnostics").hidden = !failed;
+    $("python-diagnostic-detail").textContent = failed ? `状態: ${status}\n世代: ${generation}\n${detail || message || "詳細なし"}` : "";
+    $("run-code").disabled = status !== "ready" || state.busy;
   } });
 
   async function run() {
-    if (state.busy || !state.ready) return;
+    if (state.busy) return;
     const source = editor.getValue(), taskId = state.taskId;
     if (source.length > 60000) { $("run-message").textContent = "コードは60,000文字以内にしてください。"; return; }
     persist(); clearMusic(); editor.clearErrorLine(); setBusy(true);
     $("run-message").textContent = "このコードを実行し、指定された条件を確認しています。";
     let result;
     try { result = await python.run(source, { assessmentId: taskId }); }
-    catch (error) { result = { ok: false, errorType: "RuntimeError", error: String(error), assessment: { status: "runtime-error", passed: false, checks: [], comment: "実行環境を確認し、もう一度実行してください。" } }; }
+    catch (error) {
+      $("run-message").textContent = saveFailed
+        ? "Python実行環境との接続が切れました。コードは画面内に残っています。.py保存も利用し、実行環境を再準備してください。"
+        : "Python実行環境との接続が切れました。入力したコードは残っています。実行環境を再準備してください。";
+      return; // Infrastructure failures are not student attempts or assessment results.
+    }
     try {
       // The controls are locked while running; retain the snapshot check as a second guard.
       if (state.taskId !== taskId || editor.getValue() !== source) return;
@@ -209,6 +223,10 @@ async function initialise() {
       if (result.ok && result.song && Array.isArray(result.song.tracks)) {
         state.song = result.song; visualiser.setSong(result.song); renderEventTable(result.song, $("event-table-body"));
         $("song-summary").textContent = `${result.song.tempo} BPM · ${formatBeat(songLength(result.song))} 拍 · ${countEvents(result.song)} 音イベント · ${result.song.tracks.length} トラック`;
+        $("tempo-control").value = String(result.song.tempo); $("tempo-value").textContent = String(result.song.tempo);
+        const melodicTrack = result.song.tracks.find(track => track.instrument && track.instrument !== "drums");
+        if (melodicTrack && [...$("instrument-control").options].some(option => option.value === melodicTrack.instrument))
+          $("instrument-control").value = melodicTrack.instrument;
         $("download-song").disabled = false;
       }
       if (result.line) editor.highlightErrorLine(result.line);
@@ -225,11 +243,18 @@ async function initialise() {
     state.record.hintsUsed = Math.min((currentActivity().hints || []).length, state.record.hintsUsed + 1);
     persist(); renderTask();
   });
+  $("show-solution").addEventListener("click", () => {
+    state.openSolutions.add(state.taskId); renderTask();
+  });
   $("solution-panel").addEventListener("toggle", () => {
     if ($("solution-panel").open && !state.record.solutionViewed) {
       state.record.solutionViewed = true; persist();
       $("reference-history").textContent = `ヒント参照: ${state.record.hintsUsed}段階 · 解答例を参照済み`;
     }
+  });
+  $("copy-solution").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(currentActivity().solution || ""); $("solution-copy-status").textContent = "解答例をコピーしました。エディタは変更していません。"; }
+    catch { $("solution-copy-status").textContent = "コピーできません。コードを選択してコピーしてください。"; }
   });
   $("reflection").addEventListener("input", () => {
     state.record.reflection = $("reflection").value.slice(0, 6000);
@@ -281,6 +306,34 @@ async function initialise() {
     legacyStorage.setSettings({ volume: Number($("master-volume").value), loop: $("loop-song").checked });
   });
   $("download-song").addEventListener("click", () => { if (state.song) download(JSON.stringify(state.song, null, 2), `caya-${state.taskId}-song.json`); });
+  function applySetting(setting, value) {
+    const changed = replaceSetting(editor.getValue(), setting, value);
+    if (!changed) { $("parameter-message").textContent = "このコードは安全に自動変更できません。該当箇所を直接編集してください。"; return; }
+    editor.replaceCode(changed.code, changed.line);
+    $("parameter-message").textContent = `${setting === "tempo" ? "テンポ" : "音色"}をコードへ反映しました（${changed.line}行目）。再実行して確認してください。`;
+  }
+  $("tempo-control").addEventListener("input", () => { $("tempo-value").textContent = $("tempo-control").value; });
+  $("tempo-control").addEventListener("change", () => applySetting("tempo", Number($("tempo-control").value)));
+  $("instrument-control").addEventListener("change", () => applySetting("instrument", $("instrument-control").value));
+  const layoutKey = "caya:practice:music-layout";
+  let preferredLayout;
+  try { preferredLayout = localStorage.getItem(layoutKey); } catch { preferredLayout = null; }
+  function setLayout(layout, save = false) {
+    const resolved = layout === "below" ? "below" : "right";
+    $("workspace-layout").dataset.layout = resolved;
+    $("toggle-music-layout").textContent = resolved === "right" ? "音楽パネルを下へ" : "音楽パネルを右へ";
+    $("toggle-music-layout").setAttribute("aria-pressed", String(resolved === "below"));
+    if (save) try { localStorage.setItem(layoutKey, resolved); } catch { /* Layout remains usable for this visit. */ }
+    requestAnimationFrame(() => { editor.cm?.refresh(); visualiser.resize?.(); });
+  }
+  setLayout(preferredLayout || (matchMedia("(min-width: 1251px)").matches ? "right" : "below"));
+  $("toggle-music-layout").addEventListener("click", () => setLayout($("workspace-layout").dataset.layout === "right" ? "below" : "right", true));
+  $("recover-python").addEventListener("click", async () => {
+    $("recover-python").disabled = true;
+    try { await python.restart(); $("run-message").textContent = "Python実行環境を再準備しました。コードは自動実行していません。"; }
+    catch { /* Status callback exposes the recoverable error and diagnostics. */ }
+    finally { $("recover-python").disabled = false; }
+  });
   window.addEventListener("popstate", () => {
     if (state.busy) { history.replaceState(null, "", urlFor(state.taskId)); return; }
     navigate(taskFromLocation(), { push: false });
@@ -289,7 +342,12 @@ async function initialise() {
     persist();
     if (saveFailed) { event.preventDefault(); event.returnValue = ""; }
   });
-  window.addEventListener("pagehide", () => { persist(); python.destroy(); });
+  window.addEventListener("pagehide", () => { state.leaving = true; persist(); audio.stop(); python.destroy(); });
+  window.addEventListener("pageshow", event => {
+    state.leaving = false;
+    if (!python.ready) python.ensureReady().catch(() => {});
+    if (event.persisted) $("page-notice").textContent = "履歴から復帰しました。コードを保持したままPythonを再準備しています。";
+  });
   $("course-introduction").textContent = course.introduction;
   $("loading-message").hidden = true;
   $("course-content").hidden = false;

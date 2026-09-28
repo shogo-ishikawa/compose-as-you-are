@@ -141,7 +141,8 @@ export class CodeEditor {
   replaceCode(value, changedLine = null) {
     if (this.cm) {
       const cursor = this.cm.getCursor();
-      this.cm.setValue(value);
+      // replaceRange is one undoable edit; setValue would discard the student's Undo history.
+      this.cm.replaceRange(value, { line: 0, ch: 0 }, { line: this.cm.lineCount(), ch: 0 }, "+setting");
       this.cm.setCursor(cursor);
     } else {
       this.textarea.value = value;
