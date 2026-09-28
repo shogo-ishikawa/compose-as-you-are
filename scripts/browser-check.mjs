@@ -12,7 +12,7 @@ await mkdir('browser-results', { recursive: true });
 let browser, page;
 async function mark(name, fn) { await fn(); report.passed.push(name); console.log(`PASS: ${name}`); }
 async function waitReady() {
-  await page.waitForFunction(() => document.querySelector('#run-code') && !document.querySelector('#run-code').disabled, { timeout: 90000 });
+  await page.waitForFunction(() => document.querySelector('#run-code') && !document.querySelector('#run-code').disabled, null, { timeout: 90000 });
 }
 async function writeCode(code) {
   await page.evaluate(source => {
@@ -34,9 +34,8 @@ async function select(lesson, activity) {
 }
 async function runAndExpect(status) {
   await page.locator('#run-code').click();
-  await page.waitForFunction(() => !document.querySelector('#run-code').disabled, { timeout: 90000 });
-  assert.equal(await page.locator('#current-status').innerText(), status,
-    await page.locator('#feedback').innerText());
+  await page.waitForFunction(() => !document.querySelector('#run-code').disabled, null, { timeout: 90000 });
+  assert.equal(await page.locator('#current-status').innerText(), status, await page.locator('#feedback').innerText());
 }
 try {
   for (let i = 0; i < 50; i++) {
@@ -136,9 +135,9 @@ try {
   });
   await mark('Studio still generates executable Python', async () => {
     await page.goto(`${base}/studio.html`);
-    await page.waitForFunction(() => document.querySelector('#python-status').textContent.includes('実行できます'), { timeout: 90000 });
-    const buttons = await page.locator('button').allTextContents();
-    assert.ok(buttons.length > 0);
+    await page.waitForFunction(() => document.querySelector('#studio-run-code') && !document.querySelector('#studio-run-code').disabled, null, { timeout: 90000 });
+    await page.locator('#studio-run-code').click();
+    await page.waitForFunction(() => Number(document.querySelector('#studio-summary-events').textContent) > 0, null, { timeout: 90000 });
     await page.screenshot({ path: 'browser-results/studio.png', fullPage: true });
   });
   assert.deepEqual(report.pageErrors, []);
