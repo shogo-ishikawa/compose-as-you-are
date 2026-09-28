@@ -259,6 +259,7 @@ async function initialise() {
       const data = JSON.parse(await file.text());
       if (!confirm("対応する問題のコードと記録を読み込みます。現在の各コードは直前のバックアップへ退避します。続けますか？")) return;
       persist(); const ok = store.import(data);
+      state.record = null; // Do not save the old editor over the newly imported record.
       navigate(state.taskId, { push: false });
       $("page-notice").textContent = ok ? "学習記録を読み込みました。旧版のデータや作曲スタジオは変更していません。" : "画面には読み込みましたが、ブラウザ保存に失敗した項目があります。閉じる前に書き出してください。";
     } catch (error) { $("page-notice").textContent = String(error.message || error); }

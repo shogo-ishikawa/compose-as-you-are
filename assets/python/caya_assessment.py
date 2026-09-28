@@ -66,7 +66,12 @@ def execute(source, overrides=None):
                  "begin_song": music.start_song, "record_note": music.add_note}
     stdout, stderr = LimitedOutput(), LimitedOutput()
     with record_random() as trace, contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        exec(compile(tree, "student_code.py", "exec"), namespace)
+        try:
+            exec(compile(tree, "student_code.py", "exec"), namespace)
+        except BaseException as exc:
+            exc._caya_stdout = stdout.getvalue()
+            exc._caya_stderr = stderr.getvalue()
+            raise
     return {"song": music.export_song(), "namespace": namespace, "trace": trace,
             "stdout": stdout.getvalue(), "stderr": stderr.getvalue(), "music": music}
 
@@ -280,10 +285,11 @@ def grade(source, task_id, result):
         check("同じ関数を2か所以上で使う", sum(isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
               and node.func.id == "add_phrase" for node in ast.walk(tree)) >= 2, True,
               "旋律と低音でadd_phraseをそれぞれ呼び出してください。")
+        check("曲全体も8拍", song["length_beats"], 8)
         for track in active:
             starts = [event["beat"] for event in track["events"]]
             ends = [event["beat"] + event["duration"] for event in track["events"]]
-            check(f"{track['name']}: 0拍から8拍まで", [min(starts), max(ends), track.get("cursor")], [0, 8, 8],
+            check(f"{track['name']}: 0拍から8拍まで", [min(starts), max(ends)], [0, 8],
                   "音列の要素数×1音の長さ×繰り返し回数を8にします。")
         def phrase_case(notes, beat, repeats):
             run = execute(source)
@@ -335,7 +341,8 @@ def run_submission(source, task_id=None):
                                          "comment": "答え合わせ側で問題が起きました。学生の誤答とは区別し、この結果は合格として記録しません。",
                                          "detail": f"{type(exc).__name__}: {str(exc)[:500]}"}
     except BaseException as exc:
-        payload.update(errorType=type(exc).__name__, error=str(exc)[:2000], traceback=traceback.format_exc()[-8000:])
+        payload.update(errorType=type(exc).__name__, error=str(exc)[:2000], traceback=traceback.format_exc()[-8000:],
+                       stdout=getattr(exc, "_caya_stdout", ""), stderr=getattr(exc, "_caya_stderr", ""))
         if isinstance(exc, SyntaxError):
             payload["line"] = exc.lineno
         else:
