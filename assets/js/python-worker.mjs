@@ -1,108 +1,59 @@
 import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v314.0.3/full/pyodide.mjs";
 
 const PYODIDE_INDEX = "https://cdn.jsdelivr.net/pyodide/v314.0.3/full/";
-const runtimeUrl = new URL("../python/caya_music.py", import.meta.url);
-
-let pyodidePromise = initialise();
+const MODULES = ["caya_music.py", "caya_assessment.py"];
 
 async function initialise() {
   self.postMessage({ type: "status", status: "loading", message: "Python実行環境を読み込んでいます" });
-  try {
-    const [pyodide, runtimeResponse] = await Promise.all([
-      loadPyodide({ indexURL: PYODIDE_INDEX }),
-      fetch(runtimeUrl),
-    ]);
-    if (!runtimeResponse.ok) {
-      throw new Error(`教材用Pythonモジュールを読み込めませんでした (${runtimeResponse.status})`);
-    }
-    const runtimeSource = await runtimeResponse.text();
-    pyodide.FS.writeFile("/home/pyodide/caya_music.py", runtimeSource, { encoding: "utf8" });
-    self.postMessage({ type: "status", status: "ready", message: "Pythonを実行できます" });
-    return pyodide;
-  } catch (error) {
-    self.postMessage({
-      type: "status",
-      status: "error",
-      message: error instanceof Error ? error.message : String(error),
-    });
-    throw error;
-  }
+  const [pyodide, sources] = await Promise.all([
+    loadPyodide({ indexURL: PYODIDE_INDEX }),
+    Promise.all(MODULES.map(async name => {
+      const response = await fetch(new URL(`../python/${name}`, import.meta.url));
+      if (!response.ok) throw new Error(`教材モジュール ${name} を読み込めません (${response.status})`);
+      return [name, await response.text()];
+    })),
+  ]);
+  for (const [name, source] of sources) pyodide.FS.writeFile(`/home/pyodide/${name}`, source, { encoding: "utf8" });
+  self.postMessage({ type: "status", status: "ready", message: "Pythonを実行できます" });
+  return pyodide;
 }
 
+const ready = initialise().catch(error => {
+  self.postMessage({ type: "status", status: "error", message: String(error.message || error) });
+  return null;
+});
 const WRAPPER = String.raw`
-import contextlib
-import importlib
-import io
 import json
-import sys
-import traceback
-
-# 毎回まっさらな曲データから始める
-sys.modules.pop("caya_music", None)
-caya_music = importlib.import_module("caya_music")
-
-_stdout = io.StringIO()
-_stderr = io.StringIO()
-_payload = {
-    "ok": False,
-    "stdout": "",
-    "stderr": "",
-    "song": None,
-    "errorType": None,
-    "error": None,
-    "traceback": None,
-}
-
-_user_globals = {
-    "__name__": "__main__",
-    "__builtins__": __builtins__,
-    # Lesson 1で、importを使わずに自作関数を定義するための最小命令。
-    # 通常のレッスンではcaya_musicから明示的にimportする。
-    "begin_song": caya_music.start_song,
-    "record_note": caya_music.add_note,
-}
-
-try:
-    with contextlib.redirect_stdout(_stdout), contextlib.redirect_stderr(_stderr):
-        exec(compile(__caya_user_code__, "student_code.py", "exec"), _user_globals)
-    _payload["song"] = caya_music.export_song()
-    _payload["ok"] = True
-except BaseException as _exc:
-    _payload["errorType"] = type(_exc).__name__
-    _payload["error"] = str(_exc)
-    _payload["traceback"] = traceback.format_exc()
-finally:
-    _payload["stdout"] = _stdout.getvalue()
-    _payload["stderr"] = _stderr.getvalue()
-
-json.dumps(_payload, ensure_ascii=False)
+from caya_assessment import run_submission
+json.dumps(run_submission(__caya_user_code__, __caya_assessment_id__ or None), ensure_ascii=False)
 `;
-
-self.addEventListener("message", async (event) => {
-  const { type, id, code } = event.data ?? {};
-  if (type !== "run" || !id) {
+let running = false;
+self.addEventListener("message", async event => {
+  const { type, id, code, assessmentId } = event.data ?? {};
+  if (type !== "run" || !id) return;
+  if (running) {
+    self.postMessage({ type: "result", id, result: { ok: false, errorType: "BusyError", error: "前の実行が終了してから実行してください。" } });
     return;
   }
-
+  running = true;
+  let pyodide;
   try {
-    const pyodide = await pyodidePromise;
+    pyodide = await ready;
+    if (!pyodide) throw new Error("Pythonの準備に失敗しました。ページを再読み込みしてください。");
     pyodide.globals.set("__caya_user_code__", String(code ?? ""));
-    const resultJson = await pyodide.runPythonAsync(WRAPPER);
-    pyodide.globals.delete("__caya_user_code__");
-    self.postMessage({ type: "result", id, result: JSON.parse(resultJson) });
+    pyodide.globals.set("__caya_assessment_id__", typeof assessmentId === "string" ? assessmentId : "");
+    const result = JSON.parse(await pyodide.runPythonAsync(WRAPPER));
+    self.postMessage({ type: "result", id, result });
   } catch (error) {
-    self.postMessage({
-      type: "result",
-      id,
-      result: {
-        ok: false,
-        stdout: "",
-        stderr: "",
-        song: null,
-        errorType: "RuntimeError",
-        error: error instanceof Error ? error.message : String(error),
-        traceback: error instanceof Error ? error.stack ?? error.message : String(error),
-      },
-    });
+    self.postMessage({ type: "result", id, result: {
+      ok: false, stdout: "", stderr: "", song: null, errorType: "RuntimeError",
+      error: String(error.message || error), traceback: String(error.stack || error),
+      assessment: assessmentId ? { status: "check-error", passed: false, checks: [],
+        comment: "実行環境または確認側で問題が起きました。学生の誤答とは区別し、合格として記録しません。" } : null,
+    } });
+  } finally {
+    pyodide?.globals.delete("__caya_user_code__");
+    pyodide?.globals.delete("__caya_assessment_id__");
+    running = false;
   }
 });

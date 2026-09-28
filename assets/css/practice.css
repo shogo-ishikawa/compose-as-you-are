@@ -1,0 +1,70 @@
+/* The music, editor and site styles remain shared with the existing studio. */
+.practice-page { --course-accent: #b6c8ff; color: #eef1fa; background: #101323; font-family: system-ui, -apple-system, "Noto Sans JP", sans-serif; line-height: 1.8; }
+.practice-page [hidden] { display: none !important; }
+.practice-shell { max-width: 1500px; margin: 0 auto; padding: 32px clamp(16px, 3vw, 48px) 64px; }
+.practice-page h1 { font-size: clamp(1.65rem, 3vw, 2.6rem); line-height: 1.45; margin: 8px 0 16px; }
+.practice-page h2 { font-size: 1.3rem; line-height: 1.6; margin: 0 0 12px; }
+.practice-page h3 { font-size: 1.02rem; margin: 22px 0 10px; }
+.practice-page p { margin: 10px 0 16px; }
+.practice-page a:not(.site-brand):not(.button) { color: #bdd3ff; text-underline-offset: .2em; }
+.practice-page button, .practice-page input, .practice-page textarea { font: inherit; }
+.practice-page button { cursor: pointer; }
+.practice-page button:disabled { cursor: default; opacity: .55; }
+.practice-page :focus-visible { outline: 3px solid #b9d2ff; outline-offset: 3px; }
+.course-header { max-width: 960px; margin-bottom: 28px; }
+.status-row { display: flex; gap: 12px 24px; flex-wrap: wrap; color: #c8d3eb; font-size: .9rem; }
+#storage-warning { background: #38251e; border: 1px solid #efb896; border-radius: 10px; padding: 16px; }
+#page-notice:empty { display: none; }
+.route-panel, .lesson-context, .task-panel, .writing-panel, .music-result, .record-panel { background: #191e33; border: 1px solid #3b455e; border-radius: 16px; padding: clamp(18px, 2vw, 28px); margin-bottom: 24px; min-width: 0; }
+.section-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.course-route { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.course-item { text-align: left; border: 1px solid #46516e; background: #20283e; color: #f0f3ff; border-radius: 10px; padding: 14px; display: flex; align-items: flex-start; gap: 10px; line-height: 1.65; }
+.course-item.current { background: #283957; border-color: #adc8ff; box-shadow: inset 0 0 0 1px #adc8ff; }
+.course-item small { display: block; color: #c3cee3; margin-top: 6px; font-size: .75rem; }
+.course-number { display: grid; place-items: center; border-radius: 50%; min-width: 28px; height: 28px; background: #344361; font-weight: 700; }
+.lesson-context { margin-bottom: 16px; }
+.lesson-context p { max-width: 1050px; }
+.review-links { display: flex; flex-wrap: wrap; gap: 10px 20px; padding: 14px 0; }
+.practice-page summary { cursor: pointer; font-weight: 650; padding: 10px 0; }
+.activity-tabs { display: flex; gap: 10px; margin: 20px 0; }
+.activity-tab { color: #edf2ff; background: #20283d; border: 1px solid #52627e; padding: 12px 24px; border-radius: 9px; }
+.activity-tab.selected { color: #101d36; background: #b7ceff; border-color: #b7ceff; font-weight: 750; }
+.writing-layout { display: grid; grid-template-columns: minmax(310px, .85fr) minmax(460px, 1.45fr); gap: 24px; align-items: start; }
+.task-objective { font-weight: 600; color: #e1eaff; }
+.instruction-list { padding-left: 1.45em; margin: 8px 0 20px; }
+.instruction-list li { padding-left: 6px; margin-bottom: 15px; }
+.expected-box { background: #222f47; border-left: 3px solid #a4c7ed; border-radius: 6px; padding: 2px 18px 12px; }
+.expected-box ul { padding-left: 1.2em; }
+.expected-box li { margin: 10px 0; }
+.placeholder-note, .small-note { font-size: .86rem; color: #bcc9df; line-height: 1.8; }
+.hint-item { margin: 12px 0; padding: 14px 18px; border: 1px solid #526484; border-radius: 8px; background: #232c44; }
+.hint-item p { margin-bottom: 0; }
+.solution-panel, .reflection-panel, .console-details { margin-top: 20px; border-top: 1px solid #46516a; padding-top: 10px; }
+.practice-page pre { max-width: 100%; overflow: auto; white-space: pre; font-size: .9rem; line-height: 1.65; background: #101728; color: #e2ecff; padding: 16px; border-radius: 8px; }
+.practice-page code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+#reflection { width: 100%; display: block; box-sizing: border-box; background: #111b2e; color: #eff4ff; padding: 12px; border: 1px solid #7384a1; border-radius: 8px; margin-top: 12px; resize: vertical; }
+.practice-editor { border: 1px solid #566580; border-radius: 8px; overflow: hidden; margin: 18px 0; }
+.practice-editor .CodeMirror { height: 430px; font-size: 15px; line-height: 1.7; }
+.practice-editor > textarea { width: 100%; min-height: 430px; color: #1c2435; background: #f7f9ff; padding: 14px; font: 15px/1.7 ui-monospace, monospace; box-sizing: border-box; resize: vertical; }
+.run-controls, .record-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+#run-message { min-height: 1.8em; }
+.feedback-panel { border-top: 1px solid #52617b; margin-top: 22px; padding-top: 22px; }
+#current-status { font-size: .88rem; border-radius: 6px; background: #33405a; padding: 5px 10px; }
+#current-status[data-status="passed"] { background: #234c46; color: #d2ffef; }
+.check-list { list-style: none; padding: 0; }
+.check-item { border: 1px solid #606b81; border-left-width: 4px; border-radius: 8px; padding: 14px 16px; margin: 12px 0; overflow-wrap: anywhere; }
+.check-item.passed { border-left-color: #88d2b7; background: #1c3038; }
+.check-item.failed { border-left-color: #f0c08a; background: #302d35; }
+.check-item p { margin: 6px 0; }
+.check-item dl { margin: 0; font-size: .85rem; }
+.check-item dt { color: #c3cfe2; margin: 6px 0; }
+.check-item dd { margin: 0; white-space: pre-wrap; }
+.stale-result { border-left: 3px solid #f1c58e; padding: 10px 14px; background: #332e30; }
+.music-result .canvas-wrap { min-height: 250px; }
+#piano-roll { display: block; width: 100%; height: 280px; }
+.practice-volume { display: flex; align-items: center; gap: 10px; }
+.practice-volume input { max-width: 150px; }
+.record-actions input[type="file"] { max-width: 200px; font-size: .8rem; }
+.practice-page .transport { flex-wrap: wrap; gap: 14px; }
+@media (max-width: 1100px) { .course-route { grid-template-columns: repeat(2, minmax(0, 1fr)); } .writing-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .practice-shell { padding: 22px 12px 44px; } .course-route { grid-template-columns: minmax(0, 1fr); } .activity-tab { flex: 1; padding: 10px 6px; } .writing-layout { gap: 0; } .practice-editor .CodeMirror { height: 360px; font-size: 14px; } .practice-page .button { white-space: normal; } }
