@@ -1,0 +1,31 @@
+name: SPICA curriculum checks
+on:
+  push:
+    branches: [codex/spica-aligned-lessons-v1.1.0]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  curriculum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Static and unit checks
+        run: npm test
+      - name: Package complete versioned source
+        if: always()
+        run: python3 scripts/package-release.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compose-as-you-are-v1.1.0-source
+          path: dist/compose-as-you-are-v1.1.0.zip
+          retention-days: 30
